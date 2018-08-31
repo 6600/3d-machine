@@ -12,12 +12,32 @@ export default {
   name: 'app',
   data () {
     return {
+      mixer: null,
       camera: null,
       scene: null,
-      animations: null
+      clock: null,
+      animations: null,
+      mash: null,
+      noErrorMaterial: null
     }
   },
   mounted () {
+    const ws = new WebSocket("ws://xn--9tr.com:8005")
+    ws.onopen = () => {
+      console.log('连接建立成功!')
+    }
+    ws.onmessage = (mess) => {
+      console.log('收到消息!')
+      const data = JSON.parse(mess.data)
+      if (data.state === true) {
+        this.mash.material = new THREE.MeshLambertMaterial({
+          emissive: 0xBA4A00,
+          color: 0xBA4A00
+        })
+      } else {
+        this.mash.material = this.noErrorMaterial
+      }
+    }
     this.clock = new THREE.Clock()
     this.init3D(this.$el, (Object3D) => {
       this.camera = Object3D.camera
@@ -30,6 +50,7 @@ export default {
     animate () {
       // console.log(this.clock.getDelta())
       requestAnimationFrame(this.animate)
+      if (this.mixer !== null) this.mixer.update(this.clock.getDelta())
       if (this.controls) {
         this.controls.update()
       }
@@ -58,7 +79,7 @@ export default {
       // 配置 透视 相机
       let camera = new THREE.PerspectiveCamera(45, WIDTH / HEIGHT, 1, 50000)
       // 设置相机位置
-      camera.position.set(0, 1500, 20000)
+      camera.position.set(0, 10, 150)
       // 指定它看着原点方向
       camera.lookAt(scene.position)
       // 给场景追加相机
@@ -67,17 +88,17 @@ export default {
       // --------------------------- 创建光照 ---------------------------
       // 方向光源
       let object3d1 = new THREE.DirectionalLight('white', 0.8)
-      object3d1.position.set(0, 0, 5000)
+      object3d1.position.set(0, 0, 100)
       object3d1.name = 'Back light1'
       scene.add(object3d1)
       // 方向光源
       let object3d2 = new THREE.DirectionalLight('white', 0.8)
-      object3d2.position.set(0, 5000, 0)
+      object3d2.position.set(0, 100, 0)
       object3d2.name = 'Back light2'
       scene.add(object3d2)
       // 方向光源
       let object3d3 = new THREE.DirectionalLight('white', 0.8)
-      object3d3.position.set(0, 0, -5000)
+      object3d3.position.set(0, 0, -100)
       object3d3.name = 'Back light3'
       scene.add(object3d3)
       window.onresize = function () {
@@ -93,10 +114,26 @@ export default {
       this.controls = new OrbitControls(camera, this.$el.childNodes[0])
       this.controls.maxPolarAngle = Math.PI * 0.5
       this.controls.autoRotate = true
-      this.controls.minDistance = 1000
-      this.controls.maxDistance = 50000
+      this.controls.minDistance = 10
+      this.controls.maxDistance = 1000
       const loader = new GLTFLoader()
-      loader.load('http://p5qgrn52w.bkt.clouddn.com/3d-machine/test.gltf', (gltf) => {
+      loader.load('./test.gltf', (gltf) => {
+        console.log(gltf)
+        this.animations = gltf.animations
+        if (this.animations && this.animations.length) {
+          this.mixer = new THREE.AnimationMixer(gltf.scene)
+          for (let i = 0; i < this.animations.length; i++) {
+            let animation = this.animations[i]
+            let action = this.mixer.clipAction(animation)
+            action.play()
+          }
+        }
+        gltf.scene.traverse( ( child ) => {
+          if ( child.name === 'apolySurface2392' ) {
+            this.mash = child
+            this.noErrorMaterial = child.material
+          }  
+        })
         scene.add(gltf.scene)
       })
       this.animate()
@@ -111,5 +148,10 @@ export default {
   height: 100%;
   margin: 0;
   padding: 0;
+}
+button {
+  position: fixed;
+  right: 10px;
+  bottom: 10px;
 }
 </style>
