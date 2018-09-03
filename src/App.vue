@@ -94,15 +94,12 @@ export default {
       object3d1.position.set(0, 0, 100)
       object3d1.name = 'Back light1'
       scene.add(object3d1)
+      // 上方聚光灯
+      let spotLight = new THREE.SpotLight( 0xffffff )
+      spotLight.position.set(0, 60, 0)
+      scene.add(spotLight)
       // 方向光源
-      let object3d2 = new THREE.DirectionalLight('white', 0.8)
-      object3d2.position.set(0, 100, 0)
-      object3d2.name = 'Back light2'
-      scene.add(object3d2)
-      // 方向光源
-      let object3d3 = new THREE.DirectionalLight('white', 0.8)
-      object3d3.position.set(0, 0, -100)
-      object3d3.name = 'Back light3'
+      let object3d3 = new THREE.AmbientLight('white', 0.3)
       scene.add(object3d3)
       window.onresize = function () {
         const WIDTH = document.documentElement.clientWidth > 920 ? document.documentElement.clientWidth - 244 : 920 - 244
