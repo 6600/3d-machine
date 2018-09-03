@@ -12,6 +12,7 @@ export default {
   name: 'app',
   data () {
     return {
+      action: null,
       mixer: null,
       camera: null,
       scene: null,
@@ -30,11 +31,13 @@ export default {
       console.log('收到消息!')
       const data = JSON.parse(mess.data)
       if (data.state === true) {
+        this.action.paused = true
         this.mash.material = new THREE.MeshLambertMaterial({
           emissive: 0xBA4A00,
           color: 0xBA4A00
         })
       } else {
+        this.action.paused = false
         this.mash.material = this.noErrorMaterial
       }
     }
@@ -124,8 +127,8 @@ export default {
           this.mixer = new THREE.AnimationMixer(gltf.scene)
           for (let i = 0; i < this.animations.length; i++) {
             let animation = this.animations[i]
-            let action = this.mixer.clipAction(animation)
-            action.play()
+            this.action = this.mixer.clipAction(animation)
+            this.action.play()
           }
         }
         gltf.scene.traverse( ( child ) => {
