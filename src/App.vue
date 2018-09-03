@@ -28,16 +28,26 @@ export default {
       console.log('连接建立成功!')
     }
     ws.onmessage = (mess) => {
-      console.log('收到消息!')
       const data = JSON.parse(mess.data)
+      console.log('收到消息:', data)
       if (data.state === true) {
-        this.action.paused = true
+        console.log(this.animations)
+        for (let i = 0; i < this.animations.length; i++) {
+          let animation = this.animations[i]
+          let action = this.mixer.clipAction(animation)
+          action.paused = false
+          action.play()
+        }
         this.mash.material = new THREE.MeshLambertMaterial({
           emissive: 0xBA4A00,
           color: 0xBA4A00
         })
       } else {
-        this.action.paused = false
+        for (let i = 0; i < this.animations.length; i++) {
+          let animation = this.animations[i]
+          let action = this.mixer.clipAction(animation)
+          action.paused = true
+        }
         this.mash.material = this.noErrorMaterial
       }
     }
@@ -122,11 +132,6 @@ export default {
         this.animations = gltf.animations
         if (this.animations && this.animations.length) {
           this.mixer = new THREE.AnimationMixer(gltf.scene)
-          for (let i = 0; i < this.animations.length; i++) {
-            let animation = this.animations[i]
-            this.action = this.mixer.clipAction(animation)
-            this.action.play()
-          }
         }
         gltf.scene.traverse( ( child ) => {
           if ( child.name === 'apolySurface2392' ) {
@@ -148,6 +153,7 @@ export default {
   height: 100%;
   margin: 0;
   padding: 0;
+  overflow: hidden;
 }
 button {
   position: fixed;
